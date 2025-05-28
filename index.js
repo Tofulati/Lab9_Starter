@@ -4,6 +4,10 @@ window.onerror = function(message, source, lineno, colno, error) {
     console.log('Source:', source);
     console.log('Line:', lineno, 'Column:', colno);
     console.log('Error object:', error);
+
+    if (window.TrackJS) {
+        TrackJS.track(error || message);
+    }
 };
 
 class CalculationError extends Error {
@@ -51,6 +55,11 @@ function calculateValues(firstNum, secondNum, operator) {
         return result;
     } catch (error) {
         console.error('Error in calculateValues: ', error);
+
+        if (window.TrackJS) {
+            TrackJS.track(error);
+        }
+
         return null;
     } finally {
         console.log('Calculation completed');
@@ -86,6 +95,10 @@ errorBtns.forEach(btn => {
             }
         } catch (error) {
             console.error(error);
+            
+            if (window.TrackJS) {
+                TrackJS.track(error);
+            }
         }
 
         let outputValue = form.querySelector('output').textContent;
@@ -132,7 +145,6 @@ errorBtns.forEach(btn => {
             console.trace('Tracing calcuateValues function');
             result = calculateValues(firstNum, secondNum, operator);
             console.log('Trace Result: ', result);
-
         }  else if (btn.textContent === 'Trigger a Global Error') {
             let missing = document.querySelector('#missing-element').textContent;
         } 
