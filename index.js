@@ -1,12 +1,76 @@
+window.onerror = function(message, source, lineno, colno, error) {
+    console.log('Global error caught!');
+    console.log('Message:', message);
+    console.log('Source:', source);
+    console.log('Line:', lineno, 'Column:', colno);
+    console.log('Error object:', error);
+};
+
+class CalculationError extends Error {
+    constructor(message = 'An error occurred during calculation') {
+        super(message);
+        this.name = "CalculationError";
+    }
+}
+
+class EmptyError extends Error {
+    constructor(message = 'Input cannot be empty') {
+        super(message);
+        this.name = "EmptyError";
+    }
+}
+
+class InvalidOperatorError extends Error {
+    constructor(message = 'Invalid operator provided') {
+        super(message);
+        this.name = "InvalidOperatorError";
+    }
+}
+
 let form = document.querySelector('form');
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
-    });
+let output = document.querySelector('output');
+
+function calculateValues(firstNum, secondNum, operator) {
+    try {
+        if (firstNum === '' || secondNum === '' || operator === '') {
+            throw new EmptyError();
+        }
+        if (!['+', '-', '*', '/'].includes(operator)) {
+            throw new InvalidOperatorError();
+        }
+        if (isNaN(firstNum) || isNaN(secondNum)) {
+            throw new CalculationError();
+        }
+
+        let result = eval(`${firstNum} ${operator} ${secondNum}`);
+        
+        if (isNaN(result)) {
+            throw new CalculationError();
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error in calculateValues: ', error);
+        return null;
+    } finally {
+        console.log('Calculation completed');
+    }
+}
+
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    let output = document.querySelector('output');
+    let firstNum = document.querySelector('#first-num').value;
+    let secondNum = document.querySelector('#second-num').value;
+    let operator = document.querySelector('#operator').value;
+    const result = calculateValues(firstNum, secondNum, operator);
+
+    if (result !== null) {
+        output.innerHTML = result;
+    } else {
+        output.innerHTML = 'Error';
+    }
+});
 
 let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
@@ -15,6 +79,15 @@ errorBtns.forEach(btn => {
         let firstNum = document.querySelector('#first-num').value;
         let secondNum = document.querySelector('#second-num').value;
         let operator = document.querySelector('#operator').value;
+        
+        try {
+            if (document.querySelector('output').textContent === '') {
+                throw new EmptyError();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
         let outputValue = form.querySelector('output').textContent;
 
         if (btn.textContent === 'Console Log') {
@@ -56,17 +129,12 @@ errorBtns.forEach(btn => {
         }  else if (btn.textContent === 'End Timer') {
             console.timeEnd('Calculation Timer');
         }  else if (btn.textContent === 'Console Trace') {
-
-            function calculateValues() {
-                return eval(`${firstNum} ${operator} ${secondNum}`);
-            }
-
-            console.trace(calculateValues);
-            result = calculateValues();
-            console.log('Calculation Result: ', result);
+            console.trace('Tracing calcuateValues function');
+            result = calculateValues(firstNum, secondNum, operator);
+            console.log('Trace Result: ', result);
 
         }  else if (btn.textContent === 'Trigger a Global Error') {
-            throw new Error('YOU MADE A MISTAKE! This is a global error.');
+            let missing = document.querySelector('#missing-element').textContent;
         } 
     })
 })
